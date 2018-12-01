@@ -1,20 +1,5 @@
 const { GraphQLServer } = require('graphql-yoga');
 
-
-
-/**
- * The typeDefs constant defines your GraphQL schema.
- * Here, it defines a simple Query type with one field called info.
- * This field has the type String!.
- * The exclamation mark in the type definition means that this field can never be null.
- */
-
-const typeDefs = `
-    type Query {
-        info: String!
-    }
-`;
-
 /** 
  * The resolvers object is the actual implementation of the GraphQL schema.
  * Notice how its structure is identical to the structure of the type definition
@@ -22,9 +7,55 @@ const typeDefs = `
  * 
  */
 
+ let links = [
+     {
+         id: 'link-0',
+         description: 'A really cool website',
+         link: 'www.humansinward.com'
+     }
+ ];
+
+ let idCount = links.length;
+
+ const getLink = (id) => links.find(e => e.id === id) || null
+
 const resolvers = {
     Query: {
-        info: () => 'This is my first API'
+        info: () => 'This is my first API',
+        feed: () => links,
+        link: (root, args) => getLink(args.id)
+    },
+
+    Mutation: {
+        post: (root, args) => {
+            const link = {
+                id: `link-${idCount++}`,
+                description: args.description,
+                link: args.url
+            };
+            links.push(link);
+            return link;
+        },
+        
+        updateLink: (root, args) => {
+            const link = getLink(args.id);
+            if (link) {
+                if (args.url) {
+                    link.link = args.url;
+                }
+
+                if (args.description) {
+                    link.description = args.description;
+                }
+
+                const linkIndex = links.findIndex(e => e.id === args.id);
+                links.splice(linkIndex, 1, link);
+
+                return link;
+            }
+            return null;
+        }
+
     }
 };
 
@@ -36,7 +67,7 @@ const resolvers = {
  */
 
 const server = new GraphQLServer({
-    typeDefs,
+    typeDefs: './src/schema.graphql',
     resolvers
 });
 
