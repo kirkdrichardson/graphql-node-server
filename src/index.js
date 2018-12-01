@@ -18,6 +18,7 @@ const { GraphQLServer } = require('graphql-yoga');
  let idCount = links.length;
 
  const getLink = (id) => links.find(e => e.id === id) || null
+ const getLinkIndex = (id) =>  links.findIndex(e => e.id === id)
 
 const resolvers = {
     Query: {
@@ -48,14 +49,25 @@ const resolvers = {
                     link.description = args.description;
                 }
 
-                const linkIndex = links.findIndex(e => e.id === args.id);
+                const linkIndex = getLinkIndex(args.id);
                 links.splice(linkIndex, 1, link);
 
                 return link;
             }
             return null;
-        }
+        },
 
+        deleteLink: (root, args) => {
+            const idx = getLinkIndex(args.id);
+
+            if (idx > -1) {
+                const link = links[idx];
+
+                links.splice(idx, 1);
+                return link;
+            }
+            return null;
+        }
     }
 };
 
